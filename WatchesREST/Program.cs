@@ -27,10 +27,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
+builder.Services.AddHsts(options =>
 {
-    app.UseHsts(); // Tilføjer HSTS i produktion
-}
+    options.Preload = true;
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(60);
+
+});
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

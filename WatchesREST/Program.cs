@@ -11,6 +11,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Registrerer DBConnection og WatchRepository som scoped services til dependency injection
 builder.Services.AddScoped<DBConnection>(provider => new DBConnection(connectionString));
 builder.Services.AddScoped<WatchRepository>();
+builder.Services.AddScoped<UserRepository>();
 
 // Konfigurerer CORS-politik til at tillade alle origin, metoder og headers
 builder.Services.AddCors(options =>

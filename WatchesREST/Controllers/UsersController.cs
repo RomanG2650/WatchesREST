@@ -33,7 +33,8 @@ namespace WatchesREST.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Returner mere detaljeret fejlmeddelelse til dig selv (ikke brugeren) for debugging.
+                return BadRequest("Fejl ved tilføjelse af bruger: " + ex.Message);
             }
         }
 

@@ -2,8 +2,6 @@
 using WatchLibrary.Models;
 using WatchLibrary.Repositories;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace WatchesREST.Controllers
 {
     [Route("api/[controller]")]
@@ -24,7 +22,13 @@ namespace WatchesREST.Controllers
         {
             try
             {
-                var createdUser = _users.Add(user);
+                if (string.IsNullOrWhiteSpace(user.Password))
+                    return BadRequest("Password is required");
+
+                user.SetPassword(user.Password); // Hasher password
+                var createdUser = _users.Add(user); // Tilføjer bruger via repository
+
+                user.Password = null; // Rens password efter brug
                 return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
             }
             catch (Exception ex)
@@ -32,6 +36,8 @@ namespace WatchesREST.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Any;
 using WatchLibrary.Models;
 using WatchLibrary.Repositories;
 
@@ -15,6 +16,17 @@ namespace WatchesREST.Controllers
             _users = userRepository;
         }
 
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public ActionResult<IEnumerable<User>> Get()
+        {
+            var users = _users.GetAll();
+            if (!users.Any()) return NoContent();
+            return Ok(users);
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -25,7 +37,7 @@ namespace WatchesREST.Controllers
                 if (string.IsNullOrWhiteSpace(user.Password))
                     return BadRequest("Password is required");
 
-                user.SetPassword(user.Password); // Hasher password
+                user.ValidateSetPassword(user.Password); // Hasher password
                 var createdUser = _users.Add(user); // Tilføjer bruger via repository
 
                 user.Password = null; // Rens password efter brug

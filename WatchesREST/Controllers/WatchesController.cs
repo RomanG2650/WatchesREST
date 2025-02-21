@@ -13,6 +13,8 @@ public class WatchController : ControllerBase
         _watches = watchRepository;
     }
 
+
+    
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -22,7 +24,7 @@ public class WatchController : ControllerBase
         if (!watches.Any()) return NoContent();
         return Ok(watches);
     }
-
+    
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

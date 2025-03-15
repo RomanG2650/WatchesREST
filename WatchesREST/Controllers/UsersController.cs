@@ -18,7 +18,7 @@ namespace WatchesREST.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult<IEnumerable<User>> Get()
+        public ActionResult<IEnumerable<User>> Get() //Debugging
         {
             var users = _userService.GetAllUsers();
             if (!users.Any()) return NoContent();

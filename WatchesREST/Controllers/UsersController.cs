@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Any;
 using WatchLibrary.Models;
-using WatchLibrary.Repositories;
+using WatchesREST.Services;
 
 namespace WatchesREST.Controllers
 {
@@ -9,20 +8,19 @@ namespace WatchesREST.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserRepository _users;
+        private readonly UserService _userService;
 
-        public UsersController(UserRepository userRepository)
+        public UsersController(UserService userService)
         {
-            _users = userRepository;
+            _userService = userService;
         }
-
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult<IEnumerable<User>> Get()  //Udelukkende for debugging
+        public ActionResult<IEnumerable<User>> Get()
         {
-            var users = _users.GetAll();
+            var users = _userService.GetAllUsers();
             if (!users.Any()) return NoContent();
             return Ok(users);
         }
@@ -34,32 +32,24 @@ namespace WatchesREST.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(user.Password))
-                    return BadRequest("Password is required");
-
-                user.ValidateSetPassword(user.Password); // Hasher password
-                var createdUser = _users.Add(user); // Tilføjer bruger via repository
-
-                user.Password = null; // Rens password efter brug
+                var createdUser = _userService.RegisterUser(user);
                 return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
             }
             catch (Exception ex)
             {
-                // Returner mere detaljeret fejlmeddelelse til dig selv (ikke brugeren) for debugging.
                 return BadRequest("Fejl ved tilføjelse af bruger: " + ex.Message);
             }
         }
-
-
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<User> GetById(int id)
         {
-            var user = _users.GetById(id);
+            var user = _userService.GetUserById(id);
             if (user == null) return NotFound($"User with ID {id} was not found.");
             return Ok(user);
         }
     }
 }
+

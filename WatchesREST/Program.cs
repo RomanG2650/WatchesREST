@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using WatchLibrary;
 using WatchLibrary.Repositories;
 using WatchLibrary.Database;
+using WatchesREST.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddScoped<DBConnection>(provider => new DBConnection(connectionString));
 builder.Services.AddScoped<WatchRepository>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 
 // Konfigurerer CORS-politik til at tillade alle origin, metoder og headers
 builder.Services.AddCors(options =>

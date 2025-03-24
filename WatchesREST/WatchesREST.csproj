@@ -4,17 +4,23 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>9ddea0f3-4a64-41d3-ae52-af7e78d60e3c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="WatchLibrary">
-      <HintPath>..\..\Majestic-Time\WatchLibrary\bin\Debug\net8.0\WatchLibrary.dll</HintPath>
+      <HintPath>..\..\MajesticTime\WatchLibrary\bin\Debug\net8.0\WatchLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 

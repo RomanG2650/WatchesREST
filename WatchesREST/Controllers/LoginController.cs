@@ -28,25 +28,35 @@ namespace WatchesREST.Controllers
         [HttpPost]
         public ActionResult<object> Login([FromBody] LoginRequest request)
         {
+            if (request.Email == null || request.Password == null)
+            {
+                return BadRequest("Email and Password are required.");
+            }
+
             var user = _authService.Authenticate(request.Email, request.Password, out string message);
 
             if (user == null)
             {
-                return BadRequest(message); // 🚨 Forhindrer null-reference fejl
+                return BadRequest(message);
             }
 
-            var token = GenerateJwtToken(user); // 🛠️ Nu kaldes dette KUN hvis user != null
+            var token = GenerateJwtToken(user);
             return Ok(new { token });
         }
 
 
         private string GenerateJwtToken(User user)
         {
-            var key = Encoding.UTF8.GetBytes(_config["Jwt:Secret"]);
+            var secret = _config["Jwt:Secret"];
+            if (string.IsNullOrEmpty(secret))
+            {
+                throw new InvalidOperationException("JWT Secret is not configured.");
+            }
+            var key = Encoding.UTF8.GetBytes(secret);
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 

@@ -74,7 +74,7 @@ using WatchesREST.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Henter connection string fra appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 // Registrer alle services før Build
 // Registrer DBConnection og WatchRepository som scoped services til dependency injection
@@ -118,7 +118,7 @@ app.Use(async (context, next) =>
 // Tilføjer Content-Security-Policy
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; base-uri 'self'");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; base-uri 'self'");
     await next();
 });
 

@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WatchLibrary.Models;
 using WatchLibrary.Repositories;
-using WatchLibrary.Services;
+using WatchesREST.Services;
+using Isopoh.Cryptography.Argon2;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 
 namespace WatchesREST.Controllers
 {
@@ -17,33 +18,86 @@ namespace WatchesREST.Controllers
         private readonly AuthenticationService _authService;
         private readonly UserRepository _users;
         private readonly IConfiguration _config;
+        private readonly ILogger<LoginController> _logger; // For logning
 
-        public LoginController(AuthenticationService authService, UserRepository users, IConfiguration config)
+        public LoginController(AuthenticationService authService, UserRepository users, IConfiguration config, ILogger<LoginController> logger)
         {
             _authService = authService;
             _users = users;
             _config = config;
+            _logger = logger;
         }
 
+        // eksisterende login-metode
         [HttpPost]
         public ActionResult<object> Login([FromBody] LoginRequest request)
         {
-            if (request.Email == null || request.Password == null)
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
                 return BadRequest("Email and Password are required.");
             }
 
-            var user = _authService.Authenticate(request.Email, request.Password, out string message);
-
-            if (user == null)
+            try
             {
-                return BadRequest(message);
-            }
+                var user = _authService.Authenticate(request.Email, request.Password, out string message);
 
-            var token = GenerateJwtToken(user);
-            return Ok(new { token });
+                if (user == null)
+                {
+                    return BadRequest(message);
+                }
+
+                var token = GenerateJwtToken(user);
+                return Ok(new { token });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest($"Password validation failed: {ex.Message}");
+            }
         }
 
+        // Ny metode til ændring af adgangskode
+        [HttpPut("change-password")]
+        public ActionResult ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword))
+            {
+                return BadRequest("Email, old password, and new password are required.");
+            }
+
+            var user = _users.GetByEmail(request.Email); // Hent brugeren fra databasen via repository
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Verificer den gamle adgangskode
+            string message;
+            var authenticatedUser = _authService.Authenticate(user.Email ?? string.Empty, request.OldPassword, out message);
+
+            if (authenticatedUser == null)
+            {
+                return BadRequest("Old password is incorrect.");
+            }
+
+            // Valider den nye adgangskode
+            try
+            {
+                _authService.ValidatePasswordComplexity(request.NewPassword); // Tjek om den nye adgangskode opfylder kravene
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest($"Password validation failed: {ex.Message}");
+            }
+
+            // Opdater adgangskoden i databasen
+            user.PasswordHash = Argon2.Hash(request.NewPassword); // Hash den nye adgangskode
+            _users.Update(user); // Opdater brugeren i databasen
+
+            // Log hændelsen
+            _logger.LogInformation($"User with email {user.Email} changed their password.");
+
+            return Ok("Password changed successfully.");
+        }
 
         private string GenerateJwtToken(User user)
         {
@@ -74,5 +128,14 @@ namespace WatchesREST.Controllers
             public string? Email { get; set; }
             public string? Password { get; set; }
         }
+
+        // Model for ændring af adgangskode
+        public class ChangePasswordRequest
+        {
+            public required string Email { get; set; }
+            public required string OldPassword { get; set; }
+            public required string NewPassword { get; set; }
+        }
     }
 }
+

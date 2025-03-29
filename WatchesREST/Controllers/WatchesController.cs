@@ -83,4 +83,14 @@ public class WatchController : ControllerBase
         return Ok(watch);
     }
 
+	[HttpGet("search")]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	public ActionResult<IEnumerable<WatchDTO>> Search(string query)
+	{
+		var results = _watches.Search(query);
+		if (!results.Any()) return NoContent();
+		return Ok(results);
+	}
+
 }

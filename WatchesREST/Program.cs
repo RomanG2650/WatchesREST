@@ -19,6 +19,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Registrer DBConnection og WatchRepository som scoped services til dependency injection
 builder.Services.AddScoped<DBConnection>(provider => new DBConnection(connectionString));
 builder.Services.AddScoped<WatchRepository>();
+builder.Services.AddScoped<OrderRepository>(); //Kurven
 builder.Services.AddScoped<UserRepository>();    // Sørg for at registrere UserRepository
 builder.Services.AddScoped<UserService>();      // Sørg for at registrere UserService
 builder.Services.AddScoped<AuthenticationService>();

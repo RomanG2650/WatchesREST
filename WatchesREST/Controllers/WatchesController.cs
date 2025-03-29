@@ -14,18 +14,18 @@ public class WatchController : ControllerBase
     }
 
 
-    
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public ActionResult<IEnumerable<Watch>> Get()
-    {
-        var watches = _watches.GetAll();
-        if (!watches.Any()) return NoContent();
-        return Ok(watches);
-    }
-    
-    [HttpGet("{id}")]
+
+	[HttpGet]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	public ActionResult<IEnumerable<WatchDTO>> Get()
+	{
+		var watches = _watches.GetAllAsDTO(); // Husk at du skal lave denne metode i repo
+		if (!watches.Any()) return NoContent();
+		return Ok(watches);
+	}
+
+	[HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<Watch> GetById(int id)
@@ -82,4 +82,5 @@ public class WatchController : ControllerBase
         _watches.Delete(id);
         return Ok(watch);
     }
+
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WatchLibrary.Models;
 using WatchesREST.Services;
+using static WatchLibrary.Models.User;
 
 namespace WatchesREST.Controllers
 {
@@ -32,12 +33,14 @@ namespace WatchesREST.Controllers
         {
             try
             {
+
                 var createdUser = _userService.RegisterUser(user);
+
                 return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
             }
             catch (Exception ex)
             {
-                return BadRequest("Fejl ved tilføjelse af bruger: " + ex.Message);
+                return BadRequest($"Fejl ved tilføjelse af bruger: {ex.Message}");
             }
         }
 
@@ -52,4 +55,3 @@ namespace WatchesREST.Controllers
         }
     }
 }
-

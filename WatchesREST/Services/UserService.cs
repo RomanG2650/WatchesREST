@@ -1,85 +1,67 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using WatchLibrary.Models;
+﻿using WatchLibrary.Models;
 using WatchLibrary.Repositories;
-using WatchesREST.Controllers;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 
 namespace WatchesREST.Services
 {
     public class UserService
     {
         private readonly UserRepository _userRepository;
-        private readonly IConfiguration _configuration;
 
-        public UserService(UserRepository userRepository, IConfiguration configuration)
+        public UserService(UserRepository userRepository)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
         }
 
+        // Henter alle brugere (f.eks. til debugging eller admin-brug)
         public IEnumerable<User> GetAllUsers()
         {
             return _userRepository.GetAll();
         }
 
+        // Henter én bruger baseret på ID
         public User GetUserById(int id)
         {
-            var user = _userRepository.GetById(id);
-            if (user == null)
-            {
-                throw new InvalidOperationException($"User with ID {id} not found.");
-            }
-            return user;
+            return _userRepository.GetById(id);
         }
 
+        // Registrerer en ny bruger
         public User RegisterUser(User user)
         {
-            if (string.IsNullOrWhiteSpace(user.Password))
-                throw new ArgumentException("Password is required");
-
-            if (!PasswordValidator.ValidatePassword(user.Password))
+            try
             {
-                throw new InvalidOperationException("Password does not meet complexity requirements.");
+                Console.WriteLine($"Registrerer bruger: {user.Email}");
+
+                // 1. Valider input
+                Console.WriteLine("Validerer brugerdata...");
+                user.Validate();
+
+                // 2. Valider og hash password
+                if (string.IsNullOrWhiteSpace(user.Password))
+                    throw new ArgumentException("Adgangskode er påkrævet");
+
+                Console.WriteLine("Hasher password...");
+                user.ValidateSetPassword(user.Password);
+
+                // 3. Sæt standardrolle hvis ikke angivet
+                if (user.Role == User.UserRole.User)
+                {
+                    user.Role = User.UserRole.User;
+                }
+
+                // 4. Gem brugeren i databasen
+                Console.WriteLine("Tilføjer bruger til database...");
+                var createdUser = _userRepository.Add(user);
+
+                Console.WriteLine($"Bruger oprettet med ID: {createdUser.Id}");
+                return createdUser;
             }
-
-            // Hash the password before storing it
-            user.Password = HashPassword(user.Password);
-
-            // Proceed with user registration
-            return _userRepository.Add(user);
-        }
-
-        public string Authenticate(string username, string password)
-        {
-            var user = _userRepository.GetByEmail(username);
-            if (user == null || user.Password == null || !VerifyPassword(password, user.Password))
-                return string.Empty;
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured."));
-            var tokenDescriptor = new SecurityTokenDescriptor
+            catch (Exception ex)
             {
-                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, user.Username ?? throw new InvalidOperationException("Username is null.")) }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
-        private string HashPassword(string password)
-        {
-            // Implement your password hashing logic here
-            return password; // Placeholder, replace with actual hashing
-        }
-
-        private bool VerifyPassword(string enteredPassword, string storedPasswordHash)
-        {
-            // Implement your password verification logic here
-            return enteredPassword == storedPasswordHash; // Placeholder, replace with actual verification
+                Console.WriteLine($"Fejl under oprettelse af bruger: {ex}");
+                throw new InvalidOperationException("Fejl ved oprettelse af bruger: " + ex.Message, ex);
+            }
         }
     }
 }

@@ -18,7 +18,8 @@ builder.Services.AddScoped<WatchRepository>();
 builder.Services.AddScoped<OrderRepository>(); //Kurven
 builder.Services.AddScoped<UserRepository>();    // Sørg for at registrere UserRepository
 builder.Services.AddScoped<UserService>();      // Sørg for at registrere UserService
-builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddSingleton<JwtService>();
+
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CartService>(); // CartService
@@ -37,6 +38,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Session udløber efter 30 minutter
     options.Cookie.HttpOnly = true; // Forhindrer JavaScript adgang til cookien
     options.Cookie.IsEssential = true; // Gør sessionen nødvendig for appens funktionalitet
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Sikrer kun, at sessioncookie sendes over HTTPS
 });
 
 // Tilføj controllers og middleware til dokumentation
@@ -53,32 +55,30 @@ builder.Services.AddHsts(options =>
 });
 
 // Konfigurerer JWT Authentication
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not found in configuration."));
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+// Konfigurerer JWT Authentication
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]); // Hentet fra appsettings.json
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+
+builder.Services.AddSingleton<JwtService>(); // Registrer din JWT token-generator
 
 var app = builder.Build();  // Bygger applikationen, nu kan du bruge de registrerede services
 
 // Middleware for CORS
 app.UseCors("AllowAll");
 
-// 🔹 **Tilføjer session middleware**
+// Tilføjer session middleware
 app.UseSession();
 
 // Tilføjer X-Content-Type-Options (beskyttelse mod MIME-type sniffing)

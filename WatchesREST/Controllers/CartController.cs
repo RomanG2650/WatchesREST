@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using WatchLibrary.Models;
@@ -44,12 +43,35 @@ public class CartController : ControllerBase
 
         try
         {
-            _cartService.AddToCart(item);
-            return StatusCode(StatusCodes.Status201Created, _cartService.GetCart());
+            _cartService.AddToCart(item);  // Tilføjer produktet til kurven
+            return StatusCode(StatusCodes.Status201Created, _cartService.GetCart());  // Returnerer den opdaterede kurv
         }
         catch (System.Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ex.Message);  // Returnerer fejlmeddelelse, hvis noget går galt
+        }
+    }
+
+    // Opdaterer mængden af en vare i kurven for gæster og brugere. Administratorer kan ikke opdatere mængden.
+    [HttpPut("update/{watchId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult UpdateQuantity(int watchId, [FromQuery] int newQuantity, [FromQuery] decimal price)
+    {
+        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke opdatere mængder i kurven.");
+        }
+
+        try
+        {
+            _cartService.UpdateQuantity(watchId, newQuantity, price);  // Opdaterer mængde og pris på produktet
+            return Ok(_cartService.GetCart());  // Returnerer den opdaterede kurv
+        }
+        catch (System.Exception ex)
+        {
+            return BadRequest(ex.Message);  // Returnerer fejlmeddelelse, hvis noget går galt
         }
     }
 
@@ -64,13 +86,13 @@ public class CartController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke fjerne varer fra kurven.");
         }
 
-        var success = _cartService.RemoveFromCart(watchId);
+        var success = _cartService.RemoveFromCart(watchId);  // Fjerner produktet fra kurven
         if (success)
         {
-            return Ok(_cartService.GetCart());
+            return Ok(_cartService.GetCart());  // Returnerer den opdaterede kurv
         }
 
-        return NotFound("Vare ikke fundet i kurven.");
+        return NotFound("Vare ikke fundet i kurven.");  // Returnerer fejl, hvis produktet ikke findes
     }
 
     // Rydder kurven for gæster og brugere. Administratorer kan ikke rydde kurven.
@@ -84,7 +106,7 @@ public class CartController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke rydde kurven.");
         }
 
-        _cartService.ClearCart();
-        return Ok("Kurven er nu tom.");
+        _cartService.ClearCart();  // Tømmer kurven
+        return Ok("Kurven er nu tom.");  // Returnerer besked om, at kurven er blevet ryddet
     }
 }

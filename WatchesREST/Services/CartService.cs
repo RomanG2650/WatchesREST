@@ -46,7 +46,7 @@ public class CartService
         {
             // Hvis produktet allerede findes i kurven, øg mængden og den totale pris
             existingItem.Quantity += item.Quantity;
-            existingItem.TotalPrice += item.TotalPrice;
+            existingItem.TotalPrice += item.TotalPrice; // Antag TotalPrice er det korrekte beløb
         }
         else
         {
@@ -58,7 +58,33 @@ public class CartService
         SaveCart(cart);
     }
 
-    
+    // Opdater mængden af et produkt i kurven
+    public void UpdateQuantity(int watchId, int newQuantity, decimal price)
+    {
+        if (newQuantity <= 0)
+        {
+            throw new ArgumentException("Quantity must be greater than zero.");
+        }
+
+        var cart = GetCart();  // Hent den aktuelle indkøbskurv
+
+        var existingItem = cart.Find(c => c.WatchId == watchId);
+
+        if (existingItem != null)
+        {
+            // Hvis produktet findes, opdater mængden og den totale pris
+            existingItem.Quantity = newQuantity;
+            existingItem.TotalPrice = newQuantity * price; // Beregn TotalPrice ud fra ny mængde og pris
+        }
+        else
+        {
+            throw new InvalidOperationException("Item not found in the cart.");
+        }
+
+        // Gem den opdaterede kurv
+        SaveCart(cart);
+    }
+
     public bool RemoveFromCart(int watchId)
     {
         var cart = GetCart();  // Hent den aktuelle indkøbskurv

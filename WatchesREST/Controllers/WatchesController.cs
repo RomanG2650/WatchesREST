@@ -17,6 +17,8 @@ public class WatchController : ControllerBase
     // GÆST, BRUGER OG ADMIN – alle må se ure
     [AllowAnonymous]
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld forespørgsel
+    [ProducesResponseType(StatusCodes.Status204NoContent)]  // Hvis ingen ure findes
     public ActionResult<IEnumerable<WatchDTO>> Get()
     {
         var watches = _watches.GetAllAsDTO();
@@ -27,6 +29,8 @@ public class WatchController : ControllerBase
     // GÆST, BRUGER OG ADMIN – alle må se enkelt ur
     [AllowAnonymous]
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld forespørgsel
+    [ProducesResponseType(StatusCodes.Status404NotFound)]  // Hvis uret ikke findes
     public ActionResult<Watch> GetById(int id)
     {
         var watch = _watches.GetById(id);
@@ -37,6 +41,8 @@ public class WatchController : ControllerBase
     // GÆST, BRUGER OG ADMIN – alle må søge
     [AllowAnonymous]
     [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld søgning
+    [ProducesResponseType(StatusCodes.Status204NoContent)]  // Hvis ingen resultater
     public ActionResult<IEnumerable<WatchDTO>> Search(string query)
     {
         var results = _watches.Search(query);
@@ -47,6 +53,8 @@ public class WatchController : ControllerBase
     // KUN ADMIN – må oprette ure
     [Authorize(Roles = "Admin")]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld oprettelse
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]  // Hvis der er fejl i inputdata
     public ActionResult<Watch> Post([FromBody] Watch newWatch)
     {
         if (newWatch == null) return BadRequest("Watch data is required.");
@@ -64,6 +72,9 @@ public class WatchController : ControllerBase
     // KUN ADMIN – må redigere ure
     [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld opdatering
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]  // Hvis der er fejl i inputdata
+    [ProducesResponseType(StatusCodes.Status404NotFound)]  // Hvis uret ikke findes
     public ActionResult<Watch> Put(int id, [FromBody] Watch updatedWatch)
     {
         if (updatedWatch == null) return BadRequest("Watch data is required.");
@@ -83,6 +94,8 @@ public class WatchController : ControllerBase
     // KUN ADMIN – må slette ure
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]  // Ved succesfuld sletning
+    [ProducesResponseType(StatusCodes.Status404NotFound)]  // Hvis uret ikke findes
     public ActionResult<Watch> Remove(int id)
     {
         var watch = _watches.GetById(id);

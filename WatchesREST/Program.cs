@@ -55,7 +55,7 @@ builder.Services.AddHsts(options =>
 });
 
 // Konfigurerer JWT Authentication
-// Konfigurerer JWT Authentication
+
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]); // Hentet fra appsettings.json
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

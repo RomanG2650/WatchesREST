@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Security.Claims;
 using WatchLibrary.Models;
 
 [Route("api/cart")]
@@ -42,26 +41,19 @@ public class CartController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke tilføje varer til kurven.");
         }
 
-		try
-		{
-			var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        try
+        {
+            _cartService.AddToCart(item);  // Tilføjer produktet til kurven
+            return StatusCode(StatusCodes.Status201Created, _cartService.GetCart());  // Returnerer den opdaterede kurv
+        }
+        catch (System.Exception ex)
+        {
+            return BadRequest(ex.Message);  // Returnerer fejlmeddelelse, hvis noget går galt
+        }
+    }
 
-			if (string.IsNullOrEmpty(userIdClaim))
-				return Unauthorized("Bruger ID kunne ikke findes i token.");
-
-			item.UserId = int.Parse(userIdClaim);
-
-			_cartService.AddToCart(item); // Tilføjer produktet til kurven
-			return StatusCode(StatusCodes.Status201Created, _cartService.GetCart()); // Returnerer den opdaterede kurv
-		}
-		catch (System.Exception ex)
-		{
-			return BadRequest(ex.Message); // Returnerer fejlmeddelelse, hvis noget går galt
-		}
-	}
-
-	// Opdaterer mængden af en vare i kurven for gæster og brugere. Administratorer kan ikke opdatere mængden.
-	[HttpPut("update/{watchId}")]
+    // Opdaterer mængden af en vare i kurven for gæster og brugere. Administratorer kan ikke opdatere mængden.
+    [HttpPut("update/{watchId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -117,27 +109,4 @@ public class CartController : ControllerBase
         _cartService.ClearCart();  // Tømmer kurven
         return Ok("Kurven er nu tom.");  // Returnerer besked om, at kurven er blevet ryddet
     }
-	// Gennemfører betalingen og rydder kurven
-	[HttpPost("checkout")]
-	[ProducesResponseType(StatusCodes.Status200OK)]
-	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult Checkout()
-	{
-		if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-		{
-			return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke gennemføre betaling.");
-		}
-
-		var cart = _cartService.GetCart();
-
-		if (cart == null || !cart.Any())
-		{
-			return BadRequest("Kurven er tom.");
-		}
-
-		// Her kunne du gemme ordren i en database, sende e-mail osv.
-
-		_cartService.ClearCart();  // Ryd kurven efter betaling
-		return Ok("Betaling gennemført og kurven er ryddet.");
-	}
 }

@@ -78,33 +78,35 @@ var app = builder.Build();  // Bygger applikationen, nu kan du bruge de registre
 // Middleware for CORS
 app.UseCors("AllowAll");
 
-// Tilføjer session middleware
-app.UseSession();
-
-// Tilføjer X-Content-Type-Options (beskyttelse mod MIME-type sniffing)
+// Tilføjer sikkerhedsheaders
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    await next();
+	context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+	await next();
 });
 
-// Tilføjer Content-Security-Policy
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; base-uri 'self'");
-    await next();
+	context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; base-uri 'self'");
+	await next();
 });
 
-// Konfigurerer Swagger, hvis i udviklingsmiljø
+// Swagger (kun i udviklingsmiljø)
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
-app.UseHsts(); // Aktiverer HSTS middleware altid
+app.UseHsts();
 app.UseHttpsRedirection();
-app.UseAuthentication(); // Tilføjer JWT Authentication middleware
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Tilføjet routing + flyttet session
+app.UseRouting();     //  Nødvendigt før session
+app.UseSession();     //  Session SKAL være her
+
 app.MapControllers();
 app.Run();
+

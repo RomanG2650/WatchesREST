@@ -33,7 +33,8 @@ namespace WatchesREST.Services
                     Subject = new ClaimsIdentity(new[]
                     {
                         new Claim(ClaimTypes.Name, user.Email ?? "ukendt"),
-                        new Claim(ClaimTypes.Role, user.Role.ToString())
+                        new Claim(ClaimTypes.Role, user.Role.ToString()),
+						new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) // brugerens ID
                     }),
                     Expires = DateTime.UtcNow.AddHours(1),
                     SigningCredentials = new SigningCredentials(

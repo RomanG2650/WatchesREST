@@ -13,12 +13,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="WatchLibrary">
-      <HintPath>..\..\Majestic-Time\WatchLibrary\bin\Debug\net8.0\WatchLibrary.dll</HintPath>
+      <HintPath>..\..\MajesticTime\WatchLibrary\obj\Debug\net8.0\WatchLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 

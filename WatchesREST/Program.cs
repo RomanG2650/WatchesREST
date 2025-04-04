@@ -6,6 +6,7 @@ using WatchLibrary.Repositories;
 using WatchLibrary.Database;
 using WatchesREST.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Henter connection string fra appsettings.json
@@ -56,7 +57,7 @@ builder.Services.AddHsts(options =>
 
 // Konfigurerer JWT Authentication
 
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]); // Hentet fra appsettings.json
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not found in configuration")); // Hentet fra appsettings.json
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -98,15 +99,19 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
+
 app.UseHsts();
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Tilføjet routing + flyttet session
-app.UseRouting();     //  Nødvendigt før session
 app.UseSession();     //  Session SKAL være her
 
 app.MapControllers();
+
 app.Run();
 

@@ -84,20 +84,34 @@ public class CartService
         // Gem den opdaterede kurv
         SaveCart(cart);
     }
-
-    public bool RemoveFromCart(int watchId)
+    public bool RemoveFromCart(int watchId, int userId)
     {
         var cart = GetCart();  // Hent den aktuelle indkøbskurv
 
-        // Fjern alle produkter med det specifikke WatchId fra kurven og få antallet af fjernede produkter
-        var removedCount = cart.RemoveAll(c => c.WatchId == watchId);
+        // Find og fjern produktet baseret på både WatchId og UserId
+        var removedCount = cart.RemoveAll(c => c.WatchId == watchId && c.UserId == userId);
 
         // Gem den opdaterede kurv
         SaveCart(cart);
 
-        // Returner om der blev fjernet et produkt (f.eks. om der var et produkt med det WatchId)
+        // Returner om der blev fjernet et produkt (f.eks. om der var et produkt med det WatchId og UserId)
         return removedCount > 0;
     }
+
+
+    //public bool RemoveFromCart(int watchId)
+    //{
+    //    var cart = GetCart();  // Hent den aktuelle indkøbskurv
+
+    //    // Fjern alle produkter med det specifikke WatchId fra kurven og få antallet af fjernede produkter
+    //    var removedCount = cart.RemoveAll(c => c.WatchId == watchId);
+
+    //    // Gem den opdaterede kurv
+    //    SaveCart(cart);
+
+    //    // Returner om der blev fjernet et produkt (f.eks. om der var et produkt med det WatchId)
+    //    return removedCount > 0;
+    //}
 
     // Tøm indkøbskurven
     public void ClearCart()

@@ -29,7 +29,13 @@ builder.Services.AddScoped<CartService>(); // CartService
 // Konfigurerer CORS-politik til at tillade alle origin, metoder og headers
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+	options.AddPolicy("AllowFrontend", policy =>
+	{
+		policy.WithOrigins("http://127.0.0.1:5500") // ← eller http://127.0.0.1:5500 alt efter din frontend
+			  .AllowCredentials()
+			  .AllowAnyHeader()
+			  .AllowAnyMethod();
+	});
 });
 
 // Tilføjer session understøttelse
@@ -40,6 +46,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Forhindrer JavaScript adgang til cookien
     options.Cookie.IsEssential = true; // Gør sessionen nødvendig for appens funktionalitet
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Sikrer kun, at sessioncookie sendes over HTTPS
+	options.Cookie.SameSite = SameSiteMode.None; // 🔥 Dette fikser fejlen
 });
 
 // Tilføj controllers og middleware til dokumentation
@@ -77,7 +84,7 @@ builder.Services.AddSingleton<JwtService>(); // Registrer din JWT token-generato
 var app = builder.Build();  // Bygger applikationen, nu kan du bruge de registrerede services
 
 // Middleware for CORS
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 // Tilføjer sikkerhedsheaders
 app.Use(async (context, next) =>

@@ -120,4 +120,12 @@ public class CartController : ControllerBase
         _cartService.ClearCart();  // Tømmer kurven
         return Ok("Kurven er nu tom.");  // Returnerer besked om, at kurven er blevet ryddet
     }
+	[HttpPost("checkout")]
+	public IActionResult Checkout()
+	{
+		// Her tømmer du kurven, laver evt. ordre osv.
+		HttpContext.Session.Remove("cart");
+		return Ok("Betaling gennemført!");
+	}
+
 }

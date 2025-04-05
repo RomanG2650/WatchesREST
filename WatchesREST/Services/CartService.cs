@@ -3,17 +3,19 @@ using Newtonsoft.Json;
 using WatchLibrary.Models;
 using System;
 using System.Collections.Generic;
+using WatchLibrary.Repositories;
 
 public class CartService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;  // Bruges til at få adgang til HTTP-konteksten og sessionen
     private const string CartSessionKey = "Cart";  // Nøgle for at gemme og hente indkøbskurven fra sessionen
+	private readonly WatchRepository _watchRepo;
 
-
-    public CartService(IHttpContextAccessor httpContextAccessor)
+	public CartService(IHttpContextAccessor httpContextAccessor, WatchRepository watchRepository)
     {
         _httpContextAccessor = httpContextAccessor;
-    }
+		_watchRepo = watchRepository;
+	}
 
     // Hent indkøbskurven fra sessionen, deserialiser den til en liste af CartItem objekter
     public List<CartItem> GetCart()
@@ -32,34 +34,36 @@ public class CartService
         _httpContextAccessor.HttpContext.Session.SetString(CartSessionKey, JsonConvert.SerializeObject(cart));
     }
 
-    // Tilføj et produkt til kurven
-    public void AddToCart(CartItem item)
-    {
-        item.Validate(); // Valider produktet før det tilføjes til kurven
+	// Tilføj et produkt til kurven
+	public void AddToCart(CartItem item)
+	{
+		var watch = _watchRepo.GetById(item.WatchId);
+		if (watch == null) throw new Exception("Ur findes ikke.");
 
-        var cart = GetCart();  // Hent den aktuelle indkøbskurv
+		item.Brand = watch.Brand;
+		item.Model = watch.Model;
+		item.TotalPrice = watch.Price * item.Quantity;
 
-        // Find et eksisterende produkt i kurven, som har samme WatchId
-        var existingItem = cart.Find(c => c.WatchId == item.WatchId);
+		item.Validate();
 
-        if (existingItem != null)
-        {
-            // Hvis produktet allerede findes i kurven, øg mængden og den totale pris
-            existingItem.Quantity += item.Quantity;
-            existingItem.TotalPrice += item.TotalPrice; // Antag TotalPrice er det korrekte beløb
-        }
-        else
-        {
-            // Hvis produktet ikke findes i kurven, tilføj det
-            cart.Add(item);
-        }
+		var cart = GetCart();
+		var existingItem = cart.Find(c => c.WatchId == item.WatchId);
 
-        // Gem den opdaterede kurv i sessionen
-        SaveCart(cart);
-    }
+		if (existingItem != null)
+		{
+			existingItem.Quantity += item.Quantity;
+			existingItem.TotalPrice += item.TotalPrice;
+		}
+		else
+		{
+			cart.Add(item);
+		}
 
-    // Opdater mængden af et produkt i kurven
-    public void UpdateQuantity(int watchId, int newQuantity, decimal price)
+		SaveCart(cart);
+	}
+
+	// Opdater mængden af et produkt i kurven
+	public void UpdateQuantity(int watchId, int newQuantity, decimal price)
     {
         if (newQuantity <= 0)
         {

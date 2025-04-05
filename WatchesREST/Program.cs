@@ -30,8 +30,8 @@ builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowFrontend", policy =>
 	{
-		policy.WithOrigins("http://127.0.0.1:5500") // ← eller http://127.0.0.1:5500 alt efter din frontend
-			  .AllowCredentials()
+		policy.WithOrigins("http://127.0.0.1:5500", "http://127.0.0.1:5501") // ← eller http://127.0.0.1:5500 alt efter din frontend
+              .AllowCredentials()
 			  .AllowAnyHeader()
 			  .AllowAnyMethod();
 	});

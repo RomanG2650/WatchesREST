@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="WatchLibrary">
-      <HintPath>..\..\MajesticTime\WatchLibrary\obj\Debug\net8.0\WatchLibrary.dll</HintPath>
+      <HintPath>..\..\Majestic-Time\WatchLibrary\bin\Debug\net8.0\WatchLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 

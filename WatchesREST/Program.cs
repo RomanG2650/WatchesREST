@@ -8,7 +8,6 @@ using WatchesREST.Services;
 using System.Security.Claims;
 using Microsoft.OpenApi.Models; // Tilføjet for Swagger JWT support
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Henter connection string fra appsettings.json
@@ -87,7 +86,6 @@ builder.Services.AddHsts(options =>
 });
 
 // Konfigurerer JWT Authentication
-
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]); // Hentet fra appsettings.json
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -134,16 +132,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
 app.UseHsts();
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Tilføjet routing + flyttet session
-app.UseRouting();     //  Nødvendigt før session
-app.UseSession();     //  Session SKAL være her
+app.UseRouting();     // Nødvendigt før session
+app.UseSession();     // Session SKAL være her
+app.UseAuthentication(); // Aktiverer autentificering
+app.UseAuthorization(); // Aktiverer autorisering
 
 app.MapControllers();
 app.Run();
-

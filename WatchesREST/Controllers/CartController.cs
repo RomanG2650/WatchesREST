@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
 using WatchLibrary.Models;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+
 
 [Route("api/cart")]
 [ApiController]
@@ -20,7 +21,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public IActionResult GetCart()
     {
-        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer har ikke adgang til kurven.");
         }
@@ -36,9 +37,16 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public IActionResult AddToCart([FromBody] CartItem item)
     {
-        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke tilføje varer til kurven.");
+        }
+
+        // Hvis UserId ikke er angivet eller er 0, og brugeren er logget ind, kan vi sætte det manuelt
+        if (item.UserId <= 0 && User?.Identity?.IsAuthenticated == true)
+        {
+            // Hvis brugeren er logget ind, kan vi sætte en standardværdi for UserId
+            item.UserId = 1; // Eksempel: Brug en fast værdi eller hent fra en anden kilde
         }
 
         try
@@ -59,7 +67,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult UpdateQuantity(int watchId, [FromQuery] int newQuantity, [FromQuery] decimal price)
     {
-        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke opdatere mængder i kurven.");
         }
@@ -81,18 +89,21 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult RemoveFromCart(int watchId)
     {
-        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke fjerne varer fra kurven.");
         }
 
-        var success = _cartService.RemoveFromCart(watchId);  // Fjerner produktet fra kurven
+        // Hent UserId fra den aktuelle bruger (dette er et eksempel, justér efter din løsning)
+        int userId = 1; // Erstat med den faktiske UserId. Dette skal hentes fra den autentificerede bruger.
+
+        var success = _cartService.RemoveFromCart(watchId, userId);  // ⚠️ Brug userId her!
         if (success)
         {
-            return Ok(_cartService.GetCart());  // Returnerer den opdaterede kurv
+            return Ok(_cartService.GetCart());
         }
 
-        return NotFound("Vare ikke fundet i kurven.");  // Returnerer fejl, hvis produktet ikke findes
+        return NotFound("Vare ikke fundet i kurven.");
     }
 
     // Rydder kurven for gæster og brugere. Administratorer kan ikke rydde kurven.
@@ -101,7 +112,7 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public IActionResult ClearCart()
     {
-        if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
             return StatusCode(StatusCodes.Status403Forbidden, "Administratorer kan ikke rydde kurven.");
         }

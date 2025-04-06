@@ -29,39 +29,40 @@ namespace WatchesREST.Services
         // Registrerer en ny bruger
         public User RegisterUser(User user)
         {
-            try
+            // Tjek om e-mailen allerede findes
+            if (_userRepository.EmailExists(user.Email))
             {
-                Console.WriteLine($"Registrerer bruger: {user.Email}");
-
-                // 1. Valider input
-                Console.WriteLine("Validerer brugerdata...");
-                user.Validate();
-
-                // 2. Valider og hash password
-                if (string.IsNullOrWhiteSpace(user.Password))
-                    throw new ArgumentException("Adgangskode er påkrævet");
-
-                Console.WriteLine("Hasher password...");
-                user.ValidateSetPassword(user.Password);
-
-                // 3. Sæt standardrolle hvis ikke angivet
-                if (user.Role == User.UserRole.User)
-                {
-                    user.Role = User.UserRole.User;
-                }
-
-                // 4. Gem brugeren i databasen
-                Console.WriteLine("Tilføjer bruger til database...");
-                var createdUser = _userRepository.Add(user);
-
-                Console.WriteLine($"Bruger oprettet med ID: {createdUser.Id}");
-                return createdUser;
+                throw new ArgumentException("En bruger med denne e-mail eksisterer allerede.");
             }
-            catch (Exception ex)
+
+            Console.WriteLine($"Registrerer bruger: {user.Email}");
+
+            // Valider brugerdata
+            Console.WriteLine("Validerer brugerdata...");
+            user.Validate();
+
+            // Valider og hash password
+            if (string.IsNullOrWhiteSpace(user.Password))
             {
-                Console.WriteLine($"Fejl under oprettelse af bruger: {ex}");
-                throw new InvalidOperationException("Fejl ved oprettelse af bruger: " + ex.Message, ex);
+                throw new ArgumentException("Adgangskode er påkrævet");
             }
+
+            Console.WriteLine("Hasher password...");
+            user.ValidateSetPassword(user.Password);
+
+            // Sæt standardrolle hvis ikke angivet
+            if (user.Role == User.UserRole.User)
+            {
+                user.Role = User.UserRole.User;
+            }
+
+            // Gem brugeren i databasen
+            Console.WriteLine("Tilføjer bruger til database...");
+            var createdUser = _userRepository.Add(user);
+
+            Console.WriteLine($"Bruger oprettet med ID: {createdUser.Id}");
+            return createdUser;
         }
     }
 }
+

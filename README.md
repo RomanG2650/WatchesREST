@@ -1,4 +1,4 @@
-sikkerhed som en integreret del af systemet – ikke bare som et teknisk krav, men som en del af den samlede brugeroplevelse.
+Dette projekt er en REST-baseret backend til en ur-webshop med fokus på sikkerhed. Målet er at udvikle en funktionel webshop, hvor alle centrale sikkerhedsprincipper er tænkt ind fra starten
 
 Alle nødvendige sikkerhedsforanstaltninger er implementeret, herunder:
 
